@@ -98,8 +98,13 @@ function RaceStatus(race) {
         return a.totalTime() - b.totalTime();
     }
     
+    this.moreLapsCompleted = function(a, b) {
+        return b.lapsCompleted() - a.lapsCompleted();
+    }
+    
     this.refresh = function() {
-        this.positions = this.race.drivers.sort(this.lessTotalTime);
+        var order = this.race.drivers.sort(this.moreLapsCompleted)
+        this.positions = order.sort(this.lessTotalTime);
         this.first = this.positions[0];
         this.lapsCompleted = this.first.lapsCompleted();
         this.totalTime = this.first.totalTime();
@@ -117,7 +122,7 @@ function RaceStatus(race) {
     }
 }
 
-function Overtake(raceDriver, frontRaceDriver) {
+function OvertakeControl(raceDriver, frontRaceDriver) {
     this.raceDriver = raceDriver;
     this.frontRaceDriver = frontRaceDriver;
     this.lapIndex = this.raceDriver.lapsCompleted() - 1;
@@ -139,6 +144,18 @@ function Overtake(raceDriver, frontRaceDriver) {
     }
 }
 
+function LapControl(raceDriver, firstRaceDriver) {
+    this.raceDriver = raceDriver;
+    this.firstRaceDriver = firstRaceDriver;
+    
+    this.execute = function() {
+        var totalTime = this.raceDriver.totalTime();
+        var firstTotalTime = this.firstRaceDriver.totalTime();
+        var timeDiff = totalTime - firstTotalTime;
+        return timeDiff > 0;
+    }
+}
+
 function Race(name, track, laps) {
     this.name = name;
     this.track = track;
@@ -157,10 +174,13 @@ function Race(name, track, laps) {
         if (this.over()) return;
         var positions = this.status.positions;
         for (var i = 0; i < positions.length; i++) {
+            //var lapControl = new LapControl(positions[i], positions[0]);
+            //var lapLeft = lapControl.execute();
+            //if (lapLeft) continue;
             var lapTime = this.createLapTime(positions[i]);
             positions[i].lapTimes.push(lapTime);
-            for (var j = i - 1; j > 0; j--) {
-                var overtake = new Overtake(positions[i], positions[j]);
+            for (var j = i - 1; j >= 0; j--) {
+                var overtake = new OvertakeControl(positions[i], positions[j]);
                 var overtakeSuccess = overtake.execute();
                 if (!overtakeSuccess) break;
             }
