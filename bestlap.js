@@ -35,11 +35,24 @@ function Driver(name, quality) {
     this.quality = Util.limit(quality);
 }
 
-function RaceDriver(driver, car) {
+function Category(name, qualityVariation) {
+    this.name = name;
+    this.qualityVariation = qualityVariation;
+    
+    this.variation = function(quality) {
+        var random = Math.random() * this.qualityVariation * 2;
+        var variation = random - this.qualityVariation + quality;
+        return Util.limit(variation);
+    }
+}
+
+function RaceDriver(driver, car, category) {
     this.car = car;
     this.driver = driver;
+    this.category = category;
     this.lapTimes = [];
-    this.quality = Util.average([ driver.quality, car.quality ]);
+    this.qualityBase = Util.average([ driver.quality, car.quality ]);
+    this.quality = category.variation(this.qualityBase)
     
     this.lapsCompleted = function() {
         return this.lapTimes.length;
@@ -76,11 +89,6 @@ function Lap(track, raceDriver) {
     }
 }
 
-function Category(name, qualityVariation) {
-    this.name = name;
-    this.qualityVariation = qualityVariation;
-}
-
 function RaceStatus(race) {
     this.race = race;
     
@@ -101,14 +109,13 @@ function RaceStatus(race) {
     }
 }
 
-function Race(name, track, laps, category) {
+function Race(name, track, laps) {
     this.name = name;
     this.track = track;
     this.totalLaps = laps;
     this.lapsLeft = laps;
     this.drivers = [];
     this.status = new RaceStatus(this);
-    this.category = category;
     
     this.next = function() {
         if (this.over()) return;
