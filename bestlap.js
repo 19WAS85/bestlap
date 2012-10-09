@@ -104,8 +104,14 @@ function RaceStatus(race) {
         this.totalTime = this.first.totalTime();
         for (var i = 0; i < this.positions.length; i++) {
             var raceDriver = this.positions[i];
+            var driverTotalTime = raceDriver.totalTime();
             raceDriver.position = i + 1;
-            raceDriver.diff = raceDriver.totalTime() - this.totalTime;
+            raceDriver.diff = driverTotalTime - this.totalTime;
+            raceDriver.frontDiff = 0;
+            if (i > 0) {
+                var frondDriverTotalTime = this.positions[i - 1].totalTime();
+                raceDriver.frontDiff = driverTotalTime - frondDriverTotalTime;
+            }
         }
     }
 }
