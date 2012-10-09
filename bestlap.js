@@ -52,7 +52,7 @@ function RaceDriver(driver, car, category) {
     this.category = category;
     this.lapTimes = [];
     this.qualityBase = Util.average([ driver.quality, car.quality ]);
-    this.quality = category.variation(this.qualityBase)
+    this.quality = category.variation(this.qualityBase);
     
     this.lapsCompleted = function() {
         return this.lapTimes.length;
@@ -91,6 +91,7 @@ function Lap(track, raceDriver) {
 
 function RaceStatus(race) {
     this.race = race;
+    this.positions = this.race.drivers;
     
     this.lessTotalTime = function(a, b) {
         return a.totalTime() - b.totalTime();
@@ -109,6 +110,27 @@ function RaceStatus(race) {
     }
 }
 
+function Overtake(raceDriver, frontRaceDriver) {
+    this.raceDriver = raceDriver;
+    this.frontRaceDriver = frontRaceDriver;
+    this.lapIndex = this.raceDriver.lapsCompleted() - 1;
+    
+    this.execute = function() {
+        var totalTime = this.raceDriver.totalTime();
+        var frontTotalTime = this.frontRaceDriver.totalTime();
+        if (totalTime > frontTotalTime) return;
+        
+        var quality = Math.random() * this.raceDriver.quality;
+        var frontQuality = Math.random() * this.raceDriver.quality;
+        if (this.lapIndex > 0) frontQuality *= 2;
+        if(quality < frontQuality) {
+            var frontLapTime = this.frontRaceDriver.lapTimes[this.lapIndex];
+            var newLapTime = new LapTime(frontLapTime.seconds + 0.1);
+            this.raceDriver.lapTimes[this.lapIndex] = newLapTime;
+        }
+    }
+}
+
 function Race(name, track, laps) {
     this.name = name;
     this.track = track;
@@ -117,13 +139,22 @@ function Race(name, track, laps) {
     this.drivers = [];
     this.status = new RaceStatus(this);
     
+    this.createLapTime = function(raceDriver) {
+        var lap = new Lap(this.track, raceDriver);
+        var seconds = lap.execute();
+        return new LapTime(seconds);
+    }
+    
     this.next = function() {
         if (this.over()) return;
-        for (var i = 0; i < this.drivers.length; i++) {
-            var lap = new Lap(this.track, this.drivers[i]);
-            var seconds = lap.execute();
-            var lapTime = new LapTime(seconds);
-            this.drivers[i].lapTimes.push(lapTime);
+        var positions = this.status.positions;
+        for (var i = 0; i < positions.length; i++) {
+            var lapTime = this.createLapTime(positions[i]);
+            positions[i].lapTimes.push(lapTime);
+            if (i > 0) {
+                var overtake = new Overtake(positions[i], positions[i - 1]);
+                overtake.execute();
+            }
         }
         this.lapsLeft--;
         this.status.refresh();
