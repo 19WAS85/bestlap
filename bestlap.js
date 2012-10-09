@@ -4,6 +4,7 @@ var METERS_PER_SECOND_COEF = 0.277;
 var METERS_PER_CHECKPOINT = 1000;
 var LOSS_QUALITY_COEF = -0.0012;
 var CHECKPOINT_TIME_VAR_COEF = 0.04;
+var OVERTAKE_DIFICULT_COEF = 1;
 
 function LapTime(seconds) {
     this.seconds = seconds;
@@ -124,16 +125,17 @@ function Overtake(raceDriver, frontRaceDriver) {
     this.execute = function() {
         var totalTime = this.raceDriver.totalTime();
         var frontTotalTime = this.frontRaceDriver.totalTime();
-        if (totalTime > frontTotalTime) return;
+        if (totalTime > frontTotalTime) return false;
         
         var quality = Math.random() * this.raceDriver.quality;
-        var frontQuality = Math.random() * this.raceDriver.quality;
-        if (this.lapIndex > 0) frontQuality *= 2;
+        var frontQuality = Math.random() * this.frontRaceDriver.quality;
+        if (this.lapIndex > 0) frontQuality *= OVERTAKE_DIFICULT_COEF;
         if(quality < frontQuality) {
             var frontLapTime = this.frontRaceDriver.lapTimes[this.lapIndex];
             var newLapTime = new LapTime(frontLapTime.seconds + 0.1);
             this.raceDriver.lapTimes[this.lapIndex] = newLapTime;
-        }
+            return false;
+        } else return true;
     }
 }
 
@@ -157,9 +159,10 @@ function Race(name, track, laps) {
         for (var i = 0; i < positions.length; i++) {
             var lapTime = this.createLapTime(positions[i]);
             positions[i].lapTimes.push(lapTime);
-            if (i > 0) {
-                var overtake = new Overtake(positions[i], positions[i - 1]);
-                overtake.execute();
+            for (var j = i - 1; j > 0; j--) {
+                var overtake = new Overtake(positions[i], positions[j]);
+                var overtakeSuccess = overtake.execute();
+                if (!overtakeSuccess) break;
             }
         }
         this.lapsLeft--;
