@@ -1,4 +1,6 @@
 var MAX_QUALITY = 100;
+var METERS_PER_SECOND_COEF = 0.277;
+var METERS_PER_CHECKPOINT = 1000;
 var LOSS_QUALITY_COEF = -0.0012;
 var CHECKPOINT_TIME_VAR_COEF = 0.04;
 
@@ -16,7 +18,7 @@ function LapTime(seconds) {
 function Track(name, meters, factor) {
     this.name = name;
     this.meters = meters;
-    this.checkpoints = Math.ceil(this.meters / 500);
+    this.checkpoints = Math.ceil(this.meters / METERS_PER_CHECKPOINT);
     this.factor = factor;
 }
 
@@ -36,7 +38,8 @@ function Lap(track, car, driver) {
     this.car = car;
     this.driver = driver;
     
-    this.best = this.track.meters / (this.car.speed * this.track.factor);
+    this.metersPerSecond = this.car.speed * METERS_PER_SECOND_COEF;
+    this.best = this.track.meters / (this.metersPerSecond * this.track.factor);
     this.bestCheckpoint = this.best / this.track.checkpoints;
     this.quality = (this.car.quality + this.driver.quality) / 2;
     this.qualityLossPerSecond = (this.quality - MAX_QUALITY) * LOSS_QUALITY_COEF;
@@ -53,13 +56,3 @@ function Lap(track, car, driver) {
         return time;
     }
 }
-
-var track = new Track("2012 Formula 1 Shell Belgian Grand Prix", 7004, 0.689);
-var car = new Car("Formula 1 2012", 100, 94.444);
-var driver = new Driver("Test Driver", 100);
-
-var lap = new Lap(track, car, driver);
-var seconds = lap.execute();
-var lapTime = new LapTime(seconds);
-var format = lapTime.format();
-console.debug(format);
