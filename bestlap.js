@@ -1,4 +1,5 @@
 var MAX_QUALITY = 100;
+var MIN_QUALITY = 1;
 var METERS_PER_SECOND_COEF = 0.277;
 var METERS_PER_CHECKPOINT = 1000;
 var LOSS_QUALITY_COEF = -0.0012;
@@ -25,25 +26,42 @@ function Track(name, meters, factor) {
 
 function Car(name, quality, speed) {
     this.name = name;
-    this.quality = quality;
+    this.quality = Util.limit(quality);
     this.speed = speed;
 }
 
 function Driver(name, quality) {
     this.name = name;
-    this.quality = quality;
+    this.quality = Util.limit(quality);
 }
 
-function Lap(track, car, driver) {
-    this.track = track;
+function RaceDriver(driver, car) {
     this.car = car;
     this.driver = driver;
+    this.lapTimes = [];
+    this.quality = Util.average([ driver.quality, car.quality ]);
     
-    this.metersPerSecond = this.car.speed * METERS_PER_SECOND_COEF;
+    this.lapsCompleted = function() {
+        return this.lapTimes.length;
+    }
+    
+    this.totalTime = function() {
+        var time = 0;
+        for (var i = 0; i < this.lapsCompleted(); i++) {
+            time += this.lapTimes[i].seconds;
+        }
+        return time;
+    }
+}
+
+function Lap(track, raceDriver) {
+    this.track = track;
+    this.raceDriver = raceDriver;
+    
+    this.metersPerSecond = this.raceDriver.car.speed * METERS_PER_SECOND_COEF;
     this.best = this.track.meters / (this.metersPerSecond * this.track.factor);
     this.bestCheckpoint = this.best / this.track.checkpoints;
-    this.quality = (this.car.quality + this.driver.quality) / 2;
-    this.qualityLossPerSecond = (this.quality - MAX_QUALITY) * LOSS_QUALITY_COEF;
+    this.qualityLossPerSecond = (this.raceDriver.quality - MAX_QUALITY) * LOSS_QUALITY_COEF;
     this.qualityLoss = this.qualityLossPerSecond * this.bestCheckpoint;
     this.checkpointVar = this.bestCheckpoint * CHECKPOINT_TIME_VAR_COEF;
     
@@ -58,22 +76,9 @@ function Lap(track, car, driver) {
     }
 }
 
-function RaceDriver(driver, car) {
-    this.car = car;
-    this.driver = driver;
-    this.lapTimes = [];
-    
-    this.lapsCompleted = function() {
-        return this.lapTimes.length;
-    }
-    
-    this.totalTime = function() {
-        var time = 0;
-        for (var i = 0; i < this.lapsCompleted(); i++) {
-            time += this.lapTimes[i].seconds;
-        }
-        return time;
-    }
+function Category(name, qualityVariation) {
+    this.name = name;
+    this.qualityVariation = qualityVariation;
 }
 
 function RaceStatus(race) {
@@ -89,27 +94,26 @@ function RaceStatus(race) {
         this.lapsCompleted = this.first.lapsCompleted();
         this.totalTime = this.first.totalTime();
         for (var i = 0; i < this.positions.length; i++) {
-            var driver = this.positions[i];
-            driver.position = i + 1;
-            driver.diff = driver.totalTime() - this.totalTime;
+            var raceDriver = this.positions[i];
+            raceDriver.position = i + 1;
+            raceDriver.diff = raceDriver.totalTime() - this.totalTime;
         }
     }
 }
 
-function Race(name, track, laps) {
+function Race(name, track, laps, category) {
     this.name = name;
     this.track = track;
     this.totalLaps = laps;
     this.lapsLeft = laps;
     this.drivers = [];
     this.status = new RaceStatus(this);
+    this.category = category;
     
     this.next = function() {
         if (this.over()) return;
         for (var i = 0; i < this.drivers.length; i++) {
-            var car = this.drivers[i].car;
-            var driver = this.drivers[i].driver;
-            var lap = new Lap(this.track, car, driver);
+            var lap = new Lap(this.track, this.drivers[i]);
             var seconds = lap.execute();
             var lapTime = new LapTime(seconds);
             this.drivers[i].lapTimes.push(lapTime);
@@ -122,4 +126,22 @@ function Race(name, track, laps) {
     this.over = function() {
         return this.lapsLeft < 0;
     }
+}
+
+var Util = {
+    
+    limit: function(quality) {
+        if (quality < MIN_QUALITY) return MIN_QUALITY;
+        else if (quality > MAX_QUALITY) return MAX_QUALITY;
+        else return quality;
+    },
+    
+    average: function(values) {
+        var total = 0;
+        for (var i = 0; i < values.length; i++) {
+            total += values[i];
+        }
+        return total / values.length;
+    }
+    
 }
