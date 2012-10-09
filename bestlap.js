@@ -83,13 +83,8 @@ function RaceStatus(race) {
         return a.totalTime() - b.totalTime();
     }
     
-    this.moreLapsCompleted = function(a, b) {
-        return b.lapsCompleted() - a.lapsCompleted();
-    }
-    
     this.refresh = function() {
         this.positions = this.race.drivers.sort(this.lessTotalTime);
-        this.positions = this.positions.sort(this.moreLapsCompleted);
         this.first = this.positions[0];
         this.lapsCompleted = this.first.lapsCompleted();
         this.totalTime = this.first.totalTime();
@@ -110,7 +105,7 @@ function Race(name, track, laps) {
     this.status = new RaceStatus(this);
     
     this.next = function() {
-        if (this.lapsLeft < 0) return;
+        if (this.over()) return;
         for (var i = 0; i < this.drivers.length; i++) {
             var car = this.drivers[i].car;
             var driver = this.drivers[i].driver;
@@ -119,7 +114,12 @@ function Race(name, track, laps) {
             var lapTime = new LapTime(seconds);
             this.drivers[i].lapTimes.push(lapTime);
         }
-        this.status.refresh();
         this.lapsLeft--;
+        this.status.refresh();
+        return this.status;
+    }
+    
+    this.over = function() {
+        return this.lapsLeft < 0;
     }
 }
