@@ -49,25 +49,26 @@
             race.createDriver("de la Rosa", 65);
             
             function printStatus() {
+                var positions = race.status.positions;                
                 
                 if (race.over()) console.log("Final Standings");
                 else console.log("Lap " + race.status.lapsCompleted);
                 
-                for (var i = 0; i < race.drivers.length; i++) {
-                    var position = race.drivers[i].position;
-                    var driver = race.drivers[i].driver.name;
-                    var diff = race.drivers[i].diff.toFixed(3);
+                for (var i = 0; i < positions.length; i++) {
+                    var position = positions[i].position;
+                    var driver = positions[i].driver.name;
+                    var diff = positions[i].diff.toFixed(3);
                     
-                    var lapsCompleted = race.drivers[i].lapsCompleted();
+                    var lapsCompleted = positions[i].lapsCompleted();
                     var diffLapsCompleted = lapsCompleted - race.status.lapsCompleted;
                     if (diffLapsCompleted < 0) diff = diffLapsCompleted + " / " + diff;
                     
-                    if (race.drivers[i].frontDiff > 0) {
-                        var frontDiff = race.drivers[i].frontDiff.toFixed(3);
+                    if (positions[i].frontDiff > 0) {
+                        var frontDiff = positions[i].frontDiff.toFixed(3);
                         diff += " / " + frontDiff;
                     }
                     
-                    if (race.drivers[i].out) diff = "Out / Lap " + lapsCompleted;
+                    if (positions[i].out) diff = "Out / Lap " + lapsCompleted;
                     
                     var logMessage = position +"\t"+ driver +" ("+ diff +")";
                     
