@@ -4,7 +4,10 @@ var METERS_PER_SECOND_COEF = 0.277;
 var METERS_PER_CHECKPOINT = 1000;
 var LOSS_QUALITY_COEF = -0.0012;
 var CHECKPOINT_TIME_VAR_COEF = 0.04;
-var OVERTAKE_DIFICULT_COEF = 1;
+var OVERTAKE_DIFICULT_COEF = 0.8;
+var TOTAL_FAIL_INDEX = 0.2;
+var FAIL_INDEX = 1;
+var MAX_FAIL_TIME = 45;
 
 function LapTime(seconds) {
     this.seconds = seconds;
@@ -54,6 +57,7 @@ function RaceDriver(driver, car, category) {
     this.lapTimes = [];
     this.qualityBase = Util.average([ driver.quality, car.quality ]);
     this.quality = category.variation(this.qualityBase);
+    this.out = false;
     
     this.lapsCompleted = function() {
         return this.lapTimes.length;
@@ -153,6 +157,22 @@ function LapControl(raceDriver, firstRaceDriver) {
     }
 }
 
+function FailControl(raceDriver) {
+    this.raceDriver = raceDriver;
+    
+    this.execute = function() {
+        var driverFailIndex = Math.random() * this.raceDriver.quality;
+        var failTime = 0;
+        if (driverFailIndex < TOTAL_FAIL_INDEX) {
+            failTime = TOTAL_FAIL_INDEX;
+        } else if (driverFailIndex < FAIL_INDEX) {
+            failTime = Math.random() * MAX_FAIL_TIME;
+        } else failTime = 0;
+        this.raceDriver.failLap = failTime > 0;
+        return failTime;
+    }
+}
+
 function Race(name, track, laps) {
     this.name = name;
     this.track = track;
@@ -171,12 +191,27 @@ function Race(name, track, laps) {
         if (this.over()) return;
         var positions = this.status.positions;
         for (var i = 0; i < positions.length; i++) {
-            var lapControl = new LapControl(positions[i], positions[0]);
-            var lapLeft = lapControl.execute();
-            if (lapLeft) continue;
+            if (positions[i].out) continue;
+            
+            if (!positions[0].out) {
+                var lapControl = new LapControl(positions[i], positions[0]);
+                var lapLeft = lapControl.execute();
+                if (lapLeft) continue;
+            }
+            
+            var fail = new FailControl(positions[i]);
+            var failTime = fail.execute();
+            if (failTime == TOTAL_FAIL_INDEX) {
+                positions[i].out = true;
+                continue;
+            }
+            
             var lapTime = this.createLapTime(positions[i]);
+            lapTime.seconds += failTime;
             positions[i].lapTimes.push(lapTime);
+            
             for (var j = i - 1; j >= 0; j--) {
+                if (positions[j].out || positions[j].failLap) continue;
                 var overtake = new OvertakeControl(positions[i], positions[j]);
                 var overtakeSuccess = overtake.execute();
                 if (!overtakeSuccess) break;

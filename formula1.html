@@ -13,8 +13,8 @@
             var category = new Category("Formula 1", 5);
             
             //var race = new Race("2012 Belgian Grand Prix", spa, 44);
-            //var race = new Race("2012 Canadian Grand Prix", gilles, 70);
-            var race = new Race("2012 Monaco Grand Prix", monaco, 78);
+            var race = new Race("2012 Canadian Grand Prix", gilles, 70);
+            //var race = new Race("2012 Monaco Grand Prix", monaco, 78);
             
             race.createDriver = function(name, quality) {
                 var car = new Car("Formula 1 2012", quality, 340);
@@ -66,6 +66,8 @@
                         var frontDiff = race.drivers[i].frontDiff.toFixed(3);
                         diff += " / " + frontDiff;
                     }
+                    
+                    if (race.drivers[i].out) diff = "Out / Lap " + lapsCompleted;
                     
                     var logMessage = position +"\t"+ driver +" ("+ diff +")";
                     
