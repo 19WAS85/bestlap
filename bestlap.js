@@ -164,10 +164,10 @@ function FailControl(raceDriver) {
         var driverFailIndex = Math.random() * this.raceDriver.quality;
         var failTime = 0;
         if (driverFailIndex < TOTAL_FAIL_INDEX) {
-            failTime = TOTAL_FAIL_INDEX;
+            raceDriver.out = true;
         } else if (driverFailIndex < FAIL_INDEX) {
             failTime = Math.random() * MAX_FAIL_TIME;
-        } else failTime = 0;
+        }
         this.raceDriver.failLap = failTime > 0;
         return failTime;
     }
@@ -201,10 +201,7 @@ function Race(name, track, laps) {
             
             var fail = new FailControl(positions[i]);
             var failTime = fail.execute();
-            if (failTime == TOTAL_FAIL_INDEX) {
-                positions[i].out = true;
-                continue;
-            }
+            if (positions[i].out) continue;
             
             var lapTime = this.createLapTime(positions[i]);
             lapTime.seconds += failTime;
