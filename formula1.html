@@ -9,12 +9,14 @@
             var spa = new Track("Circuit de Spa-Francorchamps", 7004, 0.705);
             var gilles = new Track("Circuit Gilles Villeneuve", 4361, 0.624);
             var monaco = new Track("Circuit de Monaco", 3340, 0.4715);
+            var japan = new Track("Suzuka Circuit", 5807, 0.668);
             
             var category = new Category("Formula 1", 5);
             
             //var race = new Race("2012 Belgian Grand Prix", spa, 44);
-            var race = new Race("2012 Canadian Grand Prix", gilles, 70);
+            //var race = new Race("2012 Canadian Grand Prix", gilles, 70);
             //var race = new Race("2012 Monaco Grand Prix", monaco, 78);
+            var race = new Race("2012 Japanese Grand Prix", japan, 53);
             
             race.createDriver = function(name, quality) {
                 var car = new Car("Formula 1 2012", quality, 340);
@@ -23,30 +25,30 @@
                 this.drivers.push(raceDriver);
             }
             
-            race.createDriver("Alonso", 100);
-            race.createDriver("Vettel", 99);
-            race.createDriver("Räikkönen", 97);
-            race.createDriver("Hamilton", 99);
-            race.createDriver("Webber", 97);
-            race.createDriver("Button", 96);
-            race.createDriver("Rosberg", 94);
-            race.createDriver("Grosjean", 93);
-            race.createDriver("Pérez", 93);
-            race.createDriver("Massa", 92);
-            race.createDriver("di Resta", 90);
-            race.createDriver("Schumacher", 90);
-            race.createDriver("Kobayashi", 89);
-            race.createDriver("Hülkenberg", 88);
-            race.createDriver("Maldonado", 90);
-            race.createDriver("Senna", 86);
-            race.createDriver("Vergne", 84);
-            race.createDriver("Ricciardo", 83);
-            race.createDriver("Glock", 70);
-            race.createDriver("Kovalainen", 69);
-            race.createDriver("Petrov", 68);
-            race.createDriver("Pic", 67);
-            race.createDriver("Karthikeyan", 66);
             race.createDriver("de la Rosa", 65);
+            race.createDriver("Karthikeyan", 66);
+            race.createDriver("Pic", 67);
+            race.createDriver("Petrov", 68);
+            race.createDriver("Kovalainen", 69);
+            race.createDriver("Glock", 70);
+            race.createDriver("Ricciardo", 83);
+            race.createDriver("Vergne", 84);
+            race.createDriver("Senna", 86);
+            race.createDriver("Maldonado", 90);
+            race.createDriver("Hülkenberg", 88);
+            race.createDriver("Kobayashi", 89);
+            race.createDriver("Schumacher", 90);
+            race.createDriver("di Resta", 90);
+            race.createDriver("Massa", 92);
+            race.createDriver("Pérez", 93);
+            race.createDriver("Grosjean", 93);
+            race.createDriver("Rosberg", 94);
+            race.createDriver("Button", 96);
+            race.createDriver("Webber", 97);
+            race.createDriver("Hamilton", 99);
+            race.createDriver("Räikkönen", 97);
+            race.createDriver("Vettel", 99);
+            race.createDriver("Alonso", 100);
             
             function printStatus() {
                 var positions = race.status.positions;                
@@ -70,7 +72,9 @@
                     
                     if (positions[i].out) diff = "Out / Lap " + lapsCompleted;
                     
-                    var logMessage = position +"\t"+ driver +" ("+ diff +")";
+                    var lastLap = positions[i].lapTimes[lapsCompleted - 1].format();
+                    
+                    var logMessage = position +"\t"+ driver +" ("+ diff +") "+ lastLap;
                     
                     console.log(logMessage);
                 }
@@ -78,7 +82,7 @@
                 console.log("");
             }
             
-            while (!race.over()) {
+            /*while (!race.over()) {
                 race.next();
                 var completed = race.status.lapsCompleted;
                 if(completed % 10 == 0 || completed == 1) {
@@ -86,7 +90,7 @@
                 }
             }
             
-            printStatus();
+            printStatus();*/
             
         </script>
     </head>

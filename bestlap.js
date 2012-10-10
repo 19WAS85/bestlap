@@ -72,9 +72,10 @@ function RaceDriver(driver, car, category) {
     }
 }
 
-function Lap(track, raceDriver) {
+function Lap(track, raceDriver, diffTime) {
     this.track = track;
     this.raceDriver = raceDriver;
+    this.diffTime = diffTime;
     
     this.metersPerSecond = this.raceDriver.car.speed * METERS_PER_SECOND_COEF;
     this.best = this.track.meters / (this.metersPerSecond * this.track.factor);
@@ -84,7 +85,7 @@ function Lap(track, raceDriver) {
     this.checkpointVar = this.bestCheckpoint * CHECKPOINT_TIME_VAR_COEF;
     
     this.execute = function() {
-        var time = 0;
+        var time = 0 + this.diffTime;
         for (var i = 0; i < this.track.checkpoints; i++) {
             var randLoss = this.checkpointVar * Math.random();
             var checkpointTime = this.bestCheckpoint + this.qualityLoss + randLoss;
@@ -181,8 +182,8 @@ function Race(name, track, laps) {
     this.drivers = [];
     this.status = new RaceStatus(this);
     
-    this.createLapTime = function(raceDriver) {
-        var lap = new Lap(this.track, raceDriver);
+    this.createLapTime = function(raceDriver, failTime) {
+        var lap = new Lap(this.track, raceDriver, failTime);
         var seconds = lap.execute();
         return new LapTime(seconds);
     }
@@ -203,8 +204,7 @@ function Race(name, track, laps) {
             var failTime = fail.execute();
             if (positions[i].out) continue;
             
-            var lapTime = this.createLapTime(positions[i]);
-            lapTime.seconds += failTime;
+            var lapTime = this.createLapTime(positions[i], failTime);
             positions[i].lapTimes.push(lapTime);
             
             for (var j = i - 1; j >= 0; j--) {
