@@ -80,7 +80,8 @@ function Lap(track, raceDriver, diffTime) {
     this.metersPerSecond = this.raceDriver.car.speed * METERS_PER_SECOND_COEF;
     this.best = this.track.meters / (this.metersPerSecond * this.track.factor);
     this.bestCheckpoint = this.best / this.track.checkpoints;
-    this.qualityLossPerSecond = (this.raceDriver.quality - MAX_QUALITY) * LOSS_QUALITY_COEF;
+    this.inverseQuality = this.raceDriver.quality - MAX_QUALITY;
+    this.qualityLossPerSecond = this.inverseQuality * LOSS_QUALITY_COEF;
     this.qualityLoss = this.qualityLossPerSecond * this.bestCheckpoint;
     this.checkpointVar = this.bestCheckpoint * CHECKPOINT_TIME_VAR_COEF;
     
@@ -88,7 +89,8 @@ function Lap(track, raceDriver, diffTime) {
         var time = 0 + this.diffTime;
         for (var i = 0; i < this.track.checkpoints; i++) {
             var randLoss = this.checkpointVar * Math.random();
-            var checkpointTime = this.bestCheckpoint + this.qualityLoss + randLoss;
+            var fixedTime = this.bestCheckpoint + this.qualityLoss;
+            var checkpointTime = fixedTime + randLoss;
             time += checkpointTime;
         }
         return time;

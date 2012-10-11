@@ -25,36 +25,37 @@
                 this.drivers.push(raceDriver);
             }
             
-            race.createDriver("de la Rosa", 65);
-            race.createDriver("Karthikeyan", 66);
-            race.createDriver("Pic", 67);
-            race.createDriver("Petrov", 68);
-            race.createDriver("Kovalainen", 69);
-            race.createDriver("Glock", 70);
-            race.createDriver("Ricciardo", 83);
-            race.createDriver("Vergne", 84);
-            race.createDriver("Senna", 86);
-            race.createDriver("Maldonado", 90);
-            race.createDriver("Hülkenberg", 88);
-            race.createDriver("Kobayashi", 89);
-            race.createDriver("Schumacher", 90);
-            race.createDriver("di Resta", 90);
-            race.createDriver("Massa", 92);
-            race.createDriver("Pérez", 93);
-            race.createDriver("Grosjean", 93);
-            race.createDriver("Rosberg", 94);
-            race.createDriver("Button", 96);
-            race.createDriver("Webber", 97);
-            race.createDriver("Hamilton", 99);
-            race.createDriver("Räikkönen", 97);
-            race.createDriver("Vettel", 99);
             race.createDriver("Alonso", 100);
+            race.createDriver("Vettel", 99);
+            race.createDriver("Räikkönen", 97);
+            race.createDriver("Hamilton", 99);
+            race.createDriver("Webber", 97);
+            race.createDriver("Button", 96);
+            race.createDriver("Rosberg", 94);
+            race.createDriver("Grosjean", 93);
+            race.createDriver("Pérez", 93);
+            race.createDriver("Massa", 92);
+            race.createDriver("di Resta", 90);
+            race.createDriver("Schumacher", 90);
+            race.createDriver("Kobayashi", 89);
+            race.createDriver("Hülkenberg", 88);
+            race.createDriver("Maldonado", 90);
+            race.createDriver("Senna", 86);
+            race.createDriver("Vergne", 84);
+            race.createDriver("Ricciardo", 83);
+            race.createDriver("Glock", 70);
+            race.createDriver("Kovalainen", 69);
+            race.createDriver("Petrov", 68);
+            race.createDriver("Pic", 67);
+            race.createDriver("Karthikeyan", 66);
+            race.createDriver("de la Rosa", 65);
             
             function printStatus() {
-                var positions = race.status.positions;                
+                var positions = race.status.positions;
+                var raceLapsCompleted = race.status.lapsCompleted;
                 
                 if (race.over()) console.log("Final Standings");
-                else console.log("Lap " + race.status.lapsCompleted);
+                else console.log("Lap " + raceLapsCompleted);
                 
                 for (var i = 0; i < positions.length; i++) {
                     var position = positions[i].position;
@@ -62,8 +63,10 @@
                     var diff = positions[i].diff.toFixed(3);
                     
                     var lapsCompleted = positions[i].lapsCompleted();
-                    var diffLapsCompleted = lapsCompleted - race.status.lapsCompleted;
-                    if (diffLapsCompleted < 0) diff = diffLapsCompleted + " / " + diff;
+                    var diffLapsCompleted = lapsCompleted - raceLapsCompleted;
+                    if (diffLapsCompleted < 0) {
+                        diff = diffLapsCompleted + " " + diff;
+                    }
                     
                     if (positions[i].frontDiff > 0) {
                         var frontDiff = positions[i].frontDiff.toFixed(3);
@@ -72,9 +75,13 @@
                     
                     if (positions[i].out) diff = "Out / Lap " + lapsCompleted;
                     
-                    var lastLap = positions[i].lapTimes[lapsCompleted - 1].format();
+                    var logMessage = position +"\t"+ driver +" ("+ diff +")";
                     
-                    var logMessage = position +"\t"+ driver +" ("+ diff +") "+ lastLap;
+                    if (!positions[i].out) {
+                        var lapIndex = lapsCompleted - 1;
+                        var lastLap = positions[i].lapTimes[lapIndex];
+                        logMessage += " " + lastLap.format();
+                    }
                     
                     console.log(logMessage);
                 }
@@ -82,7 +89,7 @@
                 console.log("");
             }
             
-            /*while (!race.over()) {
+            while (!race.over()) {
                 race.next();
                 var completed = race.status.lapsCompleted;
                 if(completed % 10 == 0 || completed == 1) {
@@ -90,7 +97,7 @@
                 }
             }
             
-            printStatus();*/
+            printStatus();
             
         </script>
     </head>
